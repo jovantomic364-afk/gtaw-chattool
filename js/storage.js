@@ -1,0 +1,1 @@
+const KEY='gtaw-chattool-project-v1';export function save(data){localStorage.setItem(KEY,JSON.stringify(data))}export function load(){let x=localStorage.getItem(KEY);return x?JSON.parse(x):null}

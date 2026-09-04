@@ -1,0 +1,1 @@
+export function snapshot(lines){return JSON.stringify(lines)}export function restore(s){return JSON.parse(s)}export function move(a,i,d){let j=i+d;if(j<0||j>=a.length)return a;[a[i],a[j]]=[a[j],a[i]];return a}
