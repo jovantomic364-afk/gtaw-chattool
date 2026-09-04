@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js';import{updateProject,newProject,currentId,projectName}from'./projects.js';import{appendRedacted,redactSegments}from'./redaction.js';
+import{parse,parseEditedLine,renderLine}from'./parser.js';import{updateProject,newProject,currentId,projectName,archiveCurrentProject}from'./projects.js';import{appendRedacted,redactSegments}from'./redaction.js';
 const $=s=>document.querySelector(s),canvas=$('#canvas'),layers=$('#chatLayers'),bg=$('#bg');
 const COMPOSER_KEY='gtawComposerStateV2';
 let imgURL='',segments=[],selectedId=null,drag=null;
@@ -99,5 +99,5 @@ $('#export').onclick=async()=>{
  }
  let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projectName()||'gtaw-chat').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 };
-$('#newproject').onclick=async()=>{if(confirm('Start a new project? Your current work stays in History.')){saveComposer();startingNewProject=true;newProject();location.href='index.html'}};
+$('#newproject').onclick=async()=>{if(confirm('Start a new project? Your current work stays in History.')){saveComposer();if(!archiveCurrentProject()){alert('This project could not be saved to History. Your workspace has not been cleared.');return}startingNewProject=true;newProject();location.href='index.html'}};
 addEventListener('beforeunload',saveComposer);addEventListener('resize',scale);restore();

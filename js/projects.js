@@ -9,6 +9,24 @@ export function renameProject(id,name){let ps=listProjects(),p=ps.find(x=>x.id==
 export function deleteProject(id){let ps=listProjects().filter(x=>x.id!==id);writeProjects(ps);if(currentId()===id)localStorage.removeItem(CURRENT_KEY)}
 export function duplicateProject(id){let ps=listProjects(),p=ps.find(x=>x.id===id);if(!p)return null;let now=Date.now(),n={...structuredClone(p),id:uid(),name:(p.name||'Chat log')+' copy',created:now,modified:now};ps.unshift(n);writeProjects(ps);return n}
 export function openProject(id){let p=listProjects().find(x=>x.id===id);if(!p)return false;localStorage.setItem(CURRENT_KEY,id);if(p.formatter)localStorage.setItem('gtawChatToolFormatterV1',JSON.stringify(p.formatter));else localStorage.removeItem('gtawChatToolFormatterV1');if(p.composer)localStorage.setItem('gtawComposerStateV2',JSON.stringify(p.composer));else localStorage.removeItem('gtawComposerStateV2');localStorage.removeItem('gtawComposerIncoming');return true}
+
+export function archiveCurrentProject(formatterData=null,composerData=null){
+ let id=currentId(),ps=listProjects(),i=ps.findIndex(x=>x.id===id),now=Date.now();
+ let existing=i>=0?ps[i]:null;
+ let formatter=formatterData??existing?.formatter??readJson('gtawChatToolFormatterV1');
+ let composer=composerData??existing?.composer??readJson('gtawComposerStateV2');
+ // Do not add a completely untouched workspace to History.
+ let hasFormatter=!!(formatter&&(String(formatter.source||'').trim()||String(formatter.filtered||'').trim()));
+ let hasComposer=!!(composer&&Array.isArray(composer.segments)&&composer.segments.some(x=>String(x?.text||'').trim()));
+ if(!hasFormatter&&!hasComposer)return false;
+ let item=existing||{id,name:`Chat log – ${new Date(now).toLocaleDateString()}`,created:now,modified:now,formatter:null,composer:null};
+ item={...item,formatter:formatter||item.formatter||null,composer:composer||item.composer||null,modified:now};
+ if(i>=0)ps[i]=item;else ps.unshift(item);
+ writeProjects(ps);
+ return listProjects().some(x=>x.id===id);
+}
+function readJson(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
+
 export function newProject(){let id=uid();localStorage.setItem(CURRENT_KEY,id);localStorage.removeItem('gtawChatToolFormatterV1');localStorage.removeItem('gtawComposerStateV2');localStorage.removeItem('gtawComposerStateV1');localStorage.removeItem('gtawComposerIncoming');return id}
 export function projectName(){return ensureProject().name}
 export function autoNameFromFormatter(d){let p=ensureProject();if(!p.name.startsWith('Chat log –')||!d?.source)return;let names=(d.characters||[]).slice(0,3);if(names.length)renameProject(p.id,names.join(' & '))}

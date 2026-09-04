@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js';import{png}from'./exporter.js';import{appendRedacted}from'./redaction.js';import{updateProject,newProject,autoNameFromFormatter}from'./projects.js';
+import{parse,parseEditedLine,renderLine}from'./parser.js';import{png}from'./exporter.js';import{appendRedacted}from'./redaction.js';import{updateProject,newProject,autoNameFromFormatter,archiveCurrentProject}from'./projects.js';
 const $=s=>document.querySelector(s);let state={mode:'assistant',lines:[]};let generated='';
 function build(){state=parse($('#source').value,$('#mode').value,$('#self').value.trim());$('#detected').textContent=state.lines.length?`Detected: ${state.mode.toUpperCase()} · ${state.lines.length} lines`:'No chat lines detected.';document.body.classList.toggle('has-log',state.lines.length>0);people();messages();rpTypes();regenerate()}
 function people(){let ps=[...new Set(state.lines.flatMap(x=>x.people||[]).filter(Boolean))].sort();$('#people').innerHTML=ps.length?ps.map(p=>`<label class="chip"><input type="checkbox" data-person="${esc(p)}" checked> ${p}</label>`).join('\n'):'<span class="muted">No characters detected.</span>';$('#people').querySelectorAll('input').forEach(x=>x.onchange=regenerate)}
@@ -50,7 +50,7 @@ function clearFormatterOnly(){
 const sendFilteredToComposer=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value,fontfamily:$('#fontfamily').value,fontweight:$('#fontweight').value,outline:$('#outline').value,add:true}));location.href='composer.html'};
 $('#composer').onclick=sendFilteredToComposer;
 if($('#composerfiltered'))$('#composerfiltered').onclick=sendFilteredToComposer;
-$('#newproject').onclick=()=>{if(confirm('Start a new project? Your current work stays in History.')){saveFormatter();restoring=true;newProject();clearFormatterOnly();location.reload()}};
+$('#newproject').onclick=()=>{if(confirm('Start a new project? Your current work stays in History.')){let snap=formatterSnapshot();saveFormatter();if(!archiveCurrentProject(snap)){alert('This project could not be saved to History. Your workspace has not been cleared.');return}restoring=true;newProject();clearFormatterOnly();location.reload()}};
 document.addEventListener('input',e=>{if(e.target.closest('main'))saveFormatter()});
 document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(saveFormatter,0)});
 addEventListener('beforeunload',saveFormatter);
