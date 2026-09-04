@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js';import{updateProject,newProject,currentId,projectName}from'./projects.js';
+import{parse,parseEditedLine,renderLine}from'./parser.js';import{updateProject,newProject,currentId,projectName}from'./projects.js';import{appendRedacted,redactSegments}from'./redaction.js';
 const $=s=>document.querySelector(s),canvas=$('#canvas'),layers=$('#chatLayers'),bg=$('#bg');
 const COMPOSER_KEY='gtawComposerStateV2';
 let imgURL='',segments=[],selectedId=null,drag=null;
@@ -22,7 +22,7 @@ function renderSegment(s){
  let m=detectedMode(s),self=s.self.trim(),lines=s.text.replace(/\r/g,'').split('\n').filter(x=>x.trim()).map(x=>parseEditedLine(x,m,self));
  for(let l of lines){let d=document.createElement('div');d.className='chat';d.style.fontSize=s.font+'px';
   if(s.timestamps&&l.ts){let t=document.createElement('span');t.style.color='#aaa';t.textContent=`[${l.ts}] `;d.appendChild(t)}
-  for(const g of renderLine(l,m,self)){let sp=document.createElement('span');sp.style.color=g.color;sp.textContent=g.text;d.appendChild(sp)}d.style.fontFamily=`${s.fontfamily||'Arial'}, Arial, sans-serif`;d.style.fontWeight=s.fontweight||'700';let ol=String(s.outline??'1');d.style.textShadow=ol==='0'?'none':ol==='1'?'-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000':'-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 2px 0 #000,2px 0 0 #000';o.appendChild(d)}
+  appendRedacted(d,renderLine(l,m,self))d.style.fontFamily=`${s.fontfamily||'Arial'}, Arial, sans-serif`;d.style.fontWeight=s.fontweight||'700';let ol=String(s.outline??'1');d.style.textShadow=ol==='0'?'none':ol==='1'?'-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000':'-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 2px 0 #000,2px 0 0 #000';o.appendChild(d)}
  o.addEventListener('pointerdown',startDrag);layers.appendChild(o);
 }
 function renderAll(){layers.innerHTML='';segments.forEach(renderSegment);renderList()}
@@ -89,10 +89,10 @@ $('#export').onclick=async()=>{
   let fs=+s.font,lh=Math.ceil(fs*1.27),pad=s.opacity?8:0,x0=s.left+pad,y=s.top+pad,maxw=s.width-pad*2,m=detectedMode(s),self=s.self.trim();let family=s.fontfamily||'Arial',weight=s.fontweight||'700',outline=+s.outline||0;ctx.font=`${weight} ${fs}px "${family}",Arial,sans-serif`;ctx.textBaseline='top';ctx.lineJoin='round';
   let rawLines=s.text.replace(/\r/g,'').split('\n').filter(x=>x.trim());
   let prepared=[];
-  for(let raw of rawLines){let l=parseEditedLine(raw,m,self),segs=[];if(s.timestamps&&l.ts)segs.push({text:`[${l.ts}] `,color:'#aaa'});segs.push(...renderLine(l,m,self));let rows=[[]],rw=0;
-   for(let sg of segs)for(let part of sg.text.split(/(\s+)/)){if(!part)continue;let pw=ctx.measureText(part).width;if(rw+pw>maxw&&rows.at(-1).length&&!/^\s+$/.test(part)){rows.push([]);rw=0}rows.at(-1).push({text:part,color:sg.color});rw+=pw}prepared.push(...rows)}
+  for(let raw of rawLines){let l=parseEditedLine(raw,m,self),segs=[];if(s.timestamps&&l.ts)segs.push({text:`[${l.ts}] `,color:'#aaa'});segs.push(...redactSegments(renderLine(l,m,self)));let rows=[[]],rw=0;
+   for(let sg of segs)for(let part of sg.text.split(/(\s+)/)){if(!part)continue;let pw=ctx.measureText(part).width;if(rw+pw>maxw&&rows.at(-1).length&&!/^\s+$/.test(part)){rows.push([]);rw=0}rows.at(-1).push({text:part,color:sg.color,redacted:sg.redacted});rw+=pw}prepared.push(...rows)}
   if(s.opacity){ctx.fillStyle=`rgba(0,0,0,${s.opacity/100})`;ctx.fillRect(s.left,s.top,s.width,prepared.length*lh+pad*2)}
-  for(let row of prepared){let x=x0;for(let sg of row){let sw=ctx.measureText(sg.text).width;if(outline){ctx.lineWidth=outline===1?2:4;ctx.strokeStyle='#000';ctx.strokeText(sg.text,x,y)}ctx.fillStyle=sg.color;ctx.fillText(sg.text,x,y);x+=sw}y+=lh}
+  for(let row of prepared){let x=x0;for(let sg of row){let sw=ctx.measureText(sg.text).width;if(sg.redacted){ctx.fillStyle='#050505';ctx.fillRect(x,y+1,sw,lh-3)}else{if(outline){ctx.lineWidth=outline===1?2:4;ctx.strokeStyle='#000';ctx.strokeText(sg.text,x,y)}ctx.fillStyle=sg.color;ctx.fillText(sg.text,x,y)}x+=sw}y+=lh}
  }
  let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projectName()||'gtaw-chat').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 };
