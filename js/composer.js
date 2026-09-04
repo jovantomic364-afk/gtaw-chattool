@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js';
+import{parse,parseEditedLine,renderLine}from'./parser.js';import{appendRedacted,redactSegments}from'./redaction.js';import{updateProject,newProject,currentId,projectName}from'./projects.js';
 const $=s=>document.querySelector(s),canvas=$('#canvas'),layers=$('#chatLayers'),bg=$('#bg');
 const COMPOSER_KEY='gtawComposerStateV2';
 let imgURL='',segments=[],selectedId=null,drag=null;
@@ -22,7 +22,7 @@ function renderSegment(s){
  let m=detectedMode(s),self=s.self.trim(),lines=s.text.replace(/\r/g,'').split('\n').filter(x=>x.trim()).map(x=>parseEditedLine(x,m,self));
  for(let l of lines){let d=document.createElement('div');d.className='chat';d.style.fontSize=s.font+'px';
   if(s.timestamps&&l.ts){let t=document.createElement('span');t.style.color='#aaa';t.textContent=`[${l.ts}] `;d.appendChild(t)}
-  renderLine(l,m,self).forEach(g=>{let x=document.createElement('span');x.style.color=g.color;x.textContent=g.text;d.appendChild(x)});o.appendChild(d)}
+  appendRedacted(d,renderLine(l,m,self));o.appendChild(d)}
  o.addEventListener('pointerdown',startDrag);layers.appendChild(o);
 }
 function renderAll(){layers.innerHTML='';segments.forEach(renderSegment);renderList()}
@@ -43,7 +43,7 @@ function addSegment(data={}){let s=defaults(data.text||'',data);segments.push(s)
 function duplicate(){let s=selected();if(!s)return;let n=defaults(s.text,{...s,id:uid(),name:(s.name||'Segment')+' copy',left:s.left+30,top:s.top+30});segments.push(n);selectedId=n.id;loadControls();renderAll();saveComposer()}
 function removeSelected(){let i=segments.findIndex(s=>s.id===selectedId);if(i<0)return;segments.splice(i,1);selectedId=segments[Math.min(i,segments.length-1)]?.id||null;loadControls();renderAll();saveComposer()}
 
-function startDrag(e){let id=e.currentTarget.dataset.id;if(selectedId!==id){selectedId=id;loadControls();renderAll();e.currentTarget=layers.querySelector(`[data-id="${id}"]`)}
+function startDrag(e){let id=e.currentTarget.dataset.id;if(selectedId!==id){selectedId=id;loadControls();renderAll()}
  let s=selected(),o=layers.querySelector(`[data-id="${id}"]`),r=o.getBoundingClientRect();drag={id,pid:e.pointerId,dx:e.clientX-r.left,dy:e.clientY-r.top};o.setPointerCapture(e.pointerId);e.preventDefault()}
 layers.addEventListener('pointermove',e=>{if(!drag)return;let s=segments.find(x=>x.id===drag.id),o=layers.querySelector(`[data-id="${drag.id}"]`),r=canvas.getBoundingClientRect(),sx=canvas.offsetWidth/r.width,sy=canvas.offsetHeight/r.height,x=(e.clientX-r.left)*sx-drag.dx*sx,y=(e.clientY-r.top)*sy-drag.dy*sy;s.left=Math.max(0,Math.min(canvas.offsetWidth-o.offsetWidth,x));s.top=Math.max(0,Math.min(canvas.offsetHeight-o.offsetHeight,y));o.style.left=s.left+'px';o.style.top=s.top+'px'});
 layers.addEventListener('pointerup',()=>{if(drag){drag=null;saveComposer()}});
@@ -53,11 +53,11 @@ function scale(){let shell=document.querySelector('.canvas-shell'),w=parseInt(ca
 function fit(){bg.style.objectFit=$('#imagemode').value||'cover'}
 
 function openDB(){return new Promise((resolve,reject)=>{let q=indexedDB.open('gtawChatToolDB',1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains('files'))q.result.createObjectStore('files')};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)})}
-async function saveImage(blob){try{let db=await openDB(),tx=db.transaction('files','readwrite');blob?tx.objectStore('files').put(blob,'composerBackground'):tx.objectStore('files').delete('composerBackground');await new Promise((r,j)=>{tx.oncomplete=r;tx.onerror=()=>j(tx.error)});db.close()}catch(e){console.warn(e)}}
-async function loadImage(){try{let db=await openDB(),tx=db.transaction('files','readonly'),q=tx.objectStore('files').get('composerBackground'),blob=await new Promise((r,j)=>{q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});db.close();if(blob){imgURL=URL.createObjectURL(blob);bg.src=imgURL;bg.style.display='block';$('#empty').style.display='none'}}catch(e){console.warn(e)}}
+async function saveImage(blob){try{let db=await openDB(),tx=db.transaction('files','readwrite');blob?tx.objectStore('files').put(blob,'composerBackground:'+currentId()):tx.objectStore('files').delete('composerBackground:'+currentId());await new Promise((r,j)=>{tx.oncomplete=r;tx.onerror=()=>j(tx.error)});db.close()}catch(e){console.warn(e)}}
+async function loadImage(){try{let db=await openDB(),tx=db.transaction('files','readonly'),q=tx.objectStore('files').get('composerBackground:'+currentId()),blob=await new Promise((r,j)=>{q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});db.close();if(blob){imgURL=URL.createObjectURL(blob);bg.src=imgURL;bg.style.display='block';$('#empty').style.display='none'}}catch(e){console.warn(e)}}
 
 function snapshot(){return{segments,selectedId,preset:$('#preset').value,imagemode:$('#imagemode').value}}
-function saveComposer(){try{localStorage.setItem(COMPOSER_KEY,JSON.stringify(snapshot()))}catch(e){console.warn(e)}}
+function saveComposer(){try{let snap=snapshot();localStorage.setItem(COMPOSER_KEY,JSON.stringify(snap));updateProject('composer',snap)}catch(e){console.warn(e)}}
 function migrateV1(){
  let d;try{d=JSON.parse(localStorage.getItem('gtawComposerStateV1')||'null')}catch{}if(!d)return false;
  segments=[defaults(d.text||'',{name:'Segment 1',mode:d.mode||'auto',self:d.self||'',font:+d.font||16,width:+d.chatwidth||700,opacity:+d.opacity||0,timestamps:d.timestamps!==false,left:parseFloat(d.left)||35,top:parseFloat(d.top)||35})];selectedId=segments[0].id;$('#preset').value=d.preset||'1920x1080';$('#imagemode').value=d.imagemode||'cover';return true
@@ -89,12 +89,12 @@ $('#export').onclick=async()=>{
   let fs=+s.font,lh=Math.ceil(fs*1.27),pad=s.opacity?8:0,x0=s.left+pad,y=s.top+pad,maxw=s.width-pad*2,m=detectedMode(s),self=s.self.trim();ctx.font=`700 ${fs}px Arial`;ctx.textBaseline='top';ctx.lineJoin='round';ctx.lineWidth=3;
   let rawLines=s.text.replace(/\r/g,'').split('\n').filter(x=>x.trim());
   let prepared=[];
-  for(let raw of rawLines){let l=parseEditedLine(raw,m,self),segs=[];if(s.timestamps&&l.ts)segs.push({text:`[${l.ts}] `,color:'#aaa'});segs.push(...renderLine(l,m,self));let rows=[[]],rw=0;
-   for(let sg of segs)for(let part of sg.text.split(/(\s+)/)){if(!part)continue;let pw=ctx.measureText(part).width;if(rw+pw>maxw&&rows.at(-1).length&&!/^\s+$/.test(part)){rows.push([]);rw=0}rows.at(-1).push({text:part,color:sg.color});rw+=pw}prepared.push(...rows)}
+  for(let raw of rawLines){let l=parseEditedLine(raw,m,self),segs=[];if(s.timestamps&&l.ts)segs.push({text:`[${l.ts}] `,color:'#aaa'});segs.push(...redactSegments(renderLine(l,m,self)));let rows=[[]],rw=0;
+   for(let sg of segs)for(let part of sg.text.split(/(\s+)/)){if(!part)continue;let pw=ctx.measureText(part).width;if(rw+pw>maxw&&rows.at(-1).length&&!/^\s+$/.test(part)){rows.push([]);rw=0}rows.at(-1).push({text:part,color:sg.color,redacted:sg.redacted});rw+=pw}prepared.push(...rows)}
   if(s.opacity){ctx.fillStyle=`rgba(0,0,0,${s.opacity/100})`;ctx.fillRect(s.left,s.top,s.width,prepared.length*lh+pad*2)}
-  for(let row of prepared){let x=x0;for(let sg of row){ctx.strokeStyle='#000';ctx.strokeText(sg.text,x,y);ctx.fillStyle=sg.color;ctx.fillText(sg.text,x,y);x+=ctx.measureText(sg.text).width}y+=lh}
+  for(let row of prepared){let x=x0;for(let sg of row){let sw=ctx.measureText(sg.text).width;if(sg.redacted){ctx.fillStyle='#050505';ctx.fillRect(x,y+1,sw,lh-3)}else{ctx.strokeStyle='#000';ctx.strokeText(sg.text,x,y);ctx.fillStyle=sg.color;ctx.fillText(sg.text,x,y)}x+=sw}y+=lh}
  }
- let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gtaw-composed-screenshot.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+ let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projectName()||'gtaw-chat').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 };
-$('#newproject').onclick=async()=>{if(confirm('Start a new project? This clears saved Formatter and Screenshot Composer progress.')){localStorage.removeItem(COMPOSER_KEY);localStorage.removeItem('gtawComposerStateV1');localStorage.removeItem('gtawChatToolFormatterV1');localStorage.removeItem('gtawComposerIncoming');await saveImage(null);location.href='index.html'}};
+$('#newproject').onclick=async()=>{if(confirm('Start a new project? Your current work stays in History.')){saveComposer();newProject();location.href='index.html'}};
 addEventListener('beforeunload',saveComposer);addEventListener('resize',scale);restore();
