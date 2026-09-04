@@ -22,7 +22,7 @@ function renderSegment(s){
  let m=detectedMode(s),self=s.self.trim(),lines=s.text.replace(/\r/g,'').split('\n').filter(x=>x.trim()).map(x=>parseEditedLine(x,m,self));
  for(let l of lines){let d=document.createElement('div');d.className='chat';d.style.fontSize=s.font+'px';
   if(s.timestamps&&l.ts){let t=document.createElement('span');t.style.color='#aaa';t.textContent=`[${l.ts}] `;d.appendChild(t)}
-  appendRedacted(d,renderLine(l,m,self))d.style.fontFamily=`${s.fontfamily||'Arial'}, Arial, sans-serif`;d.style.fontWeight=s.fontweight||'700';let ol=String(s.outline??'1');d.style.textShadow=ol==='0'?'none':ol==='1'?'-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000':'-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 2px 0 #000,2px 0 0 #000';o.appendChild(d)}
+  appendRedacted(d,renderLine(l,m,self));d.style.fontFamily=`${s.fontfamily||'Arial'}, Arial, sans-serif`;d.style.fontWeight=s.fontweight||'700';let ol=String(s.outline??'1');d.style.textShadow=ol==='0'?'none':ol==='1'?'-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000':'-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 2px 0 #000,2px 0 0 #000';o.appendChild(d)}
  o.addEventListener('pointerdown',startDrag);layers.appendChild(o);
 }
 function renderAll(){layers.innerHTML='';segments.forEach(renderSegment);renderList()}
@@ -57,7 +57,8 @@ async function saveImage(blob){try{let db=await openDB(),tx=db.transaction('file
 async function loadImage(){try{let db=await openDB(),tx=db.transaction('files','readonly'),q=tx.objectStore('files').get('composerBackground:'+currentId()),blob=await new Promise((r,j)=>{q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)});db.close();if(blob){imgURL=URL.createObjectURL(blob);bg.src=imgURL;bg.style.display='block';$('#empty').style.display='none'}}catch(e){console.warn(e)}}
 
 function snapshot(){return{segments,selectedId,preset:$('#preset').value,imagemode:$('#imagemode').value}}
-function saveComposer(){try{let snap=snapshot();localStorage.setItem(COMPOSER_KEY,JSON.stringify(snap));updateProject('composer',snap)}catch(e){console.warn(e)}}
+let startingNewProject=false;
+function saveComposer(){if(startingNewProject)return;try{let snap=snapshot();localStorage.setItem(COMPOSER_KEY,JSON.stringify(snap));updateProject('composer',snap)}catch(e){console.warn(e)}}
 function migrateV1(){
  let d;try{d=JSON.parse(localStorage.getItem('gtawComposerStateV1')||'null')}catch{}if(!d)return false;
  segments=[defaults(d.text||'',{name:'Segment 1',mode:d.mode||'auto',self:d.self||'',font:+d.font||16,fontfamily:d.fontfamily||'Arial',fontweight:d.fontweight||'700',outline:d.outline??'1',width:+d.chatwidth||700,opacity:+d.opacity||0,timestamps:d.timestamps!==false,left:parseFloat(d.left)||35,top:parseFloat(d.top)||35})];selectedId=segments[0].id;$('#preset').value=d.preset||'1920x1080';$('#imagemode').value=d.imagemode||'cover';return true
@@ -79,7 +80,9 @@ $('#duplicatesegment').onclick=duplicate;$('#deletesegment').onclick=removeSelec
 ['cfont','cfontfamily','cfontweight','coutline','chatwidth','opacity'].forEach(id=>$('#'+id).addEventListener('input',syncSelected));
 $('#centerchat').onclick=()=>{let s=selected();if(!s)return;s.left=35;s.top=35;renderAll();saveComposer()};
 $('#preset').onchange=()=>{size();saveComposer()};$('#imagemode').onchange=()=>{fit();saveComposer()};
-$('#image').onchange=async e=>{let f=e.target.files[0];if(!f)return;if(imgURL)URL.revokeObjectURL(imgURL);imgURL=URL.createObjectURL(f);bg.src=imgURL;bg.style.display='block';$('#empty').style.display='none';fit();await saveImage(f);saveComposer()};
+let pendingImage=null;
+$('#image').onchange=e=>{pendingImage=e.target.files[0]||null;$('#selectedfile').textContent=pendingImage?pendingImage.name:'No screenshot selected';$('#loadimage').disabled=!pendingImage};
+$('#loadimage').onclick=async()=>{let f=pendingImage;if(!f)return;if(imgURL)URL.revokeObjectURL(imgURL);imgURL=URL.createObjectURL(f);bg.src=imgURL;bg.style.display='block';$('#empty').style.display='none';fit();await saveImage(f);saveComposer();$('#selectedfile').textContent=f.name+' · loaded';};
 $('#removebg').onclick=async()=>{bg.removeAttribute('src');bg.style.display='none';$('#empty').style.display='grid';if(imgURL)URL.revokeObjectURL(imgURL);imgURL='';await saveImage(null)};
 
 $('#export').onclick=async()=>{
@@ -96,5 +99,5 @@ $('#export').onclick=async()=>{
  }
  let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projectName()||'gtaw-chat').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 };
-$('#newproject').onclick=async()=>{if(confirm('Start a new project? Your current work stays in History.')){saveComposer();newProject();location.href='index.html'}};
+$('#newproject').onclick=async()=>{if(confirm('Start a new project? Your current work stays in History.')){saveComposer();startingNewProject=true;newProject();location.href='index.html'}};
 addEventListener('beforeunload',saveComposer);addEventListener('resize',scale);restore();

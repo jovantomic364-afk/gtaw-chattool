@@ -1,72 +1,25 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="GTA World chatlog formatter">
-<title>GTAW ChatTool</title>
-<link rel="stylesheet" href="css/app.css">
-</head>
-<body>
-<header><div><h1>GTAW ChatTool</h1><span>Chatlog formatter</span></div><nav><a class="active" href="index.html">Chat Formatter</a><a href="composer.html">Screenshot Composer</a><a href="history.html">History</a><a href="howto.html">How to Use</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.8.1</b></header>
-<div class="wip-banner"><strong>🚧 WORK IN PROGRESS</strong> — GTAW ChatTool is currently in active development. Found a bug or have feedback? Contact <a href="https://forum.gta.world/en/profile/1817-welsh/" target="_blank" rel="noopener noreferrer">Welsh on the GTA World Forums</a>.</div>
-<main>
-<aside>
-<section>
-<h2>1 · Import</h2>
-<div class="row">
-<label>Format<select id="mode"><option value="auto">Auto detect</option><option value="ucp">GTAW UCP</option><option value="assistant">GTAW Assistant</option></select></label>
-<label>Your character<input id="self" placeholder="Jovan Tomic"></label>
-</div>
-<textarea id="source" class="source" placeholder="Paste a GTAW UCP or GTAW Assistant chatlog..."></textarea>
-<div class="row"><button class="primary" id="build">Load log</button><button id="sample">Sample</button><button id="clear">Clear</button></div>
-<p id="detected" class="muted">Waiting for a chatlog.</p>
-</section>
-<section>
-<h2>2 · Filter</h2>
-<div class="filtertitle">Content</div>
-<div class="row">
-<label><input type="checkbox" id="ooc"> OOC</label>
-<label><input type="checkbox" id="system"> System</label>
-</div>
-<div class="row"><label>From<input id="from" type="time" step="1"></label><label>To<input id="to" type="time" step="1"></label></div>
-<div class="filtertitle">Characters</div><div class="filter-tools">
-<input id="charactersearch" type="search" placeholder="Search characters…" autocomplete="off">
-<div class="filter-actions"><button type="button" id="charall">All</button><button type="button" id="charnone">None</button><button type="button" id="charselectvisible">Select visible</button><button type="button" id="chardeselectvisible">Deselect visible</button></div>
-</div>
-<div id="people" class="chips"><span class="muted">No characters detected.</span></div>
-<div class="filter-tools">
-<input id="messagesearch" type="search" placeholder="Search message contacts…" autocomplete="off">
-<div class="filter-actions"><button type="button" id="msgall">All</button><button type="button" id="msgnone">None</button><button type="button" id="msgselectvisible">Select visible</button><button type="button" id="msgdeselectvisible">Deselect visible</button></div>
-</div>
-<div id="messages" class="filtergroup"></div>
-<div id="rptypes" class="filtergroup"></div>
-<p class="hint">Changing a filter rebuilds the filtered text from your original log.</p>
-</section>
-<section>
-<h2>3 · Preview & export</h2>
-<div class="row">
-<label>Width<select id="width"><option value="720">720</option><option value="900" selected>1080p</option><option value="1100">1440p</option><option value="1350">4K</option></select></label>
-<label>Size<input id="font" type="range" min="11" max="28" value="16"><span id="fontv">16</span></label>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="GTA World chatlog formatter"><title>GTAW ChatTool</title><link rel="stylesheet" href="css/app.css"></head><body>
+<header><div class="brand"><h1>GTAW ChatTool</h1><span>Chatlog formatter</span></div><nav><a class="active" href="index.html">Formatter</a><a href="composer.html">Composer</a><a href="history.html">History</a><a href="howto.html">How to Use</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.9.0</b></header>
+<div class="wip-banner"><strong>WORK IN PROGRESS</strong> — GTAW ChatTool is currently in active development. Found a bug or have feedback? <a href="https://forum.gta.world/en/profile/1817-welsh/" target="_blank" rel="noopener noreferrer">Contact Welsh on the GTA World Forums.</a></div>
+<main class="ux-main">
+<aside class="ux-sidebar">
+<section class="import-card"><div class="section-heading"><span class="step">1</span><div><h2>Import Chatlog</h2><p>Paste a GTAW log and we'll detect the format.</p></div></div><div class="field-stack"><label>Source format<select id="mode"><option value="auto">Auto detect</option><option value="ucp">GTAW UCP</option><option value="assistant">GTAW Assistant</option></select></label><label>Your character<input id="self" placeholder="Character name"></label></div><textarea id="source" class="source" placeholder="Paste your GTAW chatlog here..."></textarea><div class="action-row"><button class="primary" id="build">Load Chatlog</button><button id="sample">Sample</button><button id="clear">Clear</button></div><p id="detected" class="muted">Waiting for a chatlog.</p></section>
+<section class="filters-card"><div class="section-heading"><span class="step">2</span><div><h2>Filter Scene</h2><p>Choose exactly what you want to keep.</p></div></div>
+<div class="filtertitle">Characters</div><div class="filter-tools"><input id="charactersearch" type="search" placeholder="Search characters…" autocomplete="off"><div class="filter-actions"><button type="button" id="charall">All</button><button type="button" id="charnone">None</button><button type="button" id="charselectvisible">Select visible</button><button type="button" id="chardeselectvisible">Deselect visible</button></div></div><div id="people" class="chips"><span class="muted">No characters detected.</span></div>
+<div class="filtertitle">RP Type & Content</div><div id="rptypes" class="filtergroup"></div><div class="compact-checks"><label><input type="checkbox" id="ooc"> OOC</label><label><input type="checkbox" id="system"> System</label></div>
+<details class="more-filters"><summary>Messages & time range</summary><div class="filter-tools"><input id="messagesearch" type="search" placeholder="Search message contacts…" autocomplete="off"><div class="filter-actions"><button type="button" id="msgall">All</button><button type="button" id="msgnone">None</button><button type="button" id="msgselectvisible">Select visible</button><button type="button" id="msgdeselectvisible">Deselect visible</button></div></div><div id="messages" class="filtergroup"></div><div class="time-grid"><label>From<input id="from" type="time" step="1"></label><label>To<input id="to" type="time" step="1"></label></div></details><p class="hint">Changing a filter rebuilds the edited chat from the original log.</p></section>
+</aside>
+<div class="workspace ux-workspace">
+<section class="editor-card"><div class="head"><div class="section-heading"><span class="step">3</span><div><h2>Edit Chat</h2><p>Delete lines, fix typos or condense the scene.</p></div></div><div class="status-cluster"><span id="editstatus" class="saved-status"></span><span id="stats" class="muted"></span></div></div><textarea id="filtered" class="filtered" placeholder="Your filtered chat will appear here..."></textarea><div class="sticky-actions"><button id="resetedit">Reset edits</button><button id="copy">Copy text</button></div></section>
+<section class="previewbox"><div class="head"><div class="section-heading"><span class="step">4</span><div><h2>Preview & Export</h2><p>Style the chat here before exporting it or sending it to Composer.</p></div></div></div>
+<div class="chat-style-bar" aria-label="Chat style controls">
 <label>Font<select id="fontfamily"><option value="Arial" selected>Arial</option><option value="Segoe UI">Segoe UI</option><option value="Tahoma">Tahoma</option></select></label>
+<label>Size<div class="inline-range"><input id="font" type="range" min="11" max="28" value="16"><span id="fontv">16</span></div></label>
 <label>Weight<select id="fontweight"><option value="400">Normal</option><option value="700" selected>Bold</option></select></label>
 <label>Outline<select id="outline"><option value="0">None</option><option value="1" selected>Thin</option><option value="2">Thick</option></select></label>
+<label>Width<select id="width"><option value="720">720 px</option><option value="900" selected>900 px</option><option value="1100">1100 px</option><option value="1350">1350 px</option></select></label>
+<label class="style-check"><input type="checkbox" id="timestamps"> Timestamps</label>
+<label class="style-check"><input type="checkbox" id="chatbg"> Background</label><label id="bgopacitywrap">Opacity<div class="inline-range"><input id="bgopacity" type="range" min="0" max="80" value="45"><span id="bgopacityv">45%</span></div></label>
 </div>
-<div class="row"><label><input type="checkbox" id="timestamps"> Timestamps</label><label><input type="checkbox" id="chatbg"> Chat background</label></div>
-<div class="row"><button class="primary" id="composer">Open in Screenshot Composer</button><button id="png">Chat PNG</button><button id="copy">Copy filtered text</button><button id="resetedit">Reset edits</button></div>
-</section>
-</aside>
-<div class="workspace">
-<section>
-<div class="head"><div><h2>Filtered Log</h2><span class="muted">Editable — delete lines, fix typos or condense the scene.</span></div><span id="editstatus" class="muted"></span></div>
-<textarea id="filtered" class="filtered" placeholder="Your filtered log will appear here..."></textarea><div class="filtered-actions"><button class="primary" id="composerfiltered" type="button">Add to Screenshot Composer</button><span class="muted small">Adds this edited filtered log as a new Composer segment.</span></div>
-</section>
-<section class="previewbox">
-<div class="head"><h2>Live GTAW Preview</h2><span id="stats" class="muted"></span></div>
-<div id="stage"><div id="preview"></div></div>
-</section>
-</div>
-</main>
-<script type="module" src="js/app.js"></script>
-</body>
-</html>
+<div id="stage"><div id="preview"><div class="preview-empty">Load a chatlog to preview it here.</div></div></div><div class="preview-actions"><button id="png">Export Transparent PNG</button><button class="primary" id="composer">Add to Screenshot Composer →</button></div></section>
+</div></main><script type="module" src="js/app.js"></script></body></html>

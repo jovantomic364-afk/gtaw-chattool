@@ -15,3 +15,7 @@
 
 .wip-banner{margin:0;padding:9px 14px;background:#332b12;border-bottom:1px solid #725d1c;color:#eadca7;font-size:12px;line-height:1.45}
 .wip-banner strong{color:#ffd86a}.wip-banner a{color:#ffe39a;text-decoration:underline;font-weight:700}
+/* v1.9 UX PREVIEW: make the canvas the focus */
+.composer-layout{grid-template-columns:330px minmax(0,1fr);max-width:1800px;margin:0 auto;gap:18px;padding:18px}.composer-layout aside{max-height:calc(100vh - 125px);overflow:auto;padding-right:4px}.composer-layout aside section{margin-bottom:10px}.composer-workspace{min-height:calc(100vh - 150px);display:flex;flex-direction:column;justify-content:center}.canvas-shell{flex:1;min-height:620px;display:flex;align-items:center;justify-content:center}.segment-list{max-height:180px;overflow:auto}.composertext{height:150px}.wide{font-size:14px;padding:11px}@media(max-width:950px){.composer-layout{grid-template-columns:1fr}.composer-layout aside{max-height:none}.canvas-shell{min-height:420px}}
+
+.image-loader{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.image-loader #selectedfile{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.image-loader button:disabled{opacity:.45;cursor:not-allowed}

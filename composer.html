@@ -3,12 +3,12 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screenshot Composer · GTAW ChatTool</title><link rel="stylesheet" href="css/app.css"><link rel="stylesheet" href="css/composer.css"></head>
 <body>
-<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a><a href="history.html">History</a><a href="howto.html">How to Use</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.8.1</b></header>
-<div class="wip-banner"><strong>🚧 WORK IN PROGRESS</strong> — GTAW ChatTool is currently in active development. Found a bug or have feedback? Contact <a href="https://forum.gta.world/en/profile/1817-welsh/" target="_blank" rel="noopener noreferrer">Welsh on the GTA World Forums</a>.</div>
+<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a><a href="history.html">History</a><a href="howto.html">How to Use</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.9.0</b></header>
+<div class="wip-banner"><strong>WORK IN PROGRESS</strong> — GTAW ChatTool is currently in active development. Found a bug or have feedback? <a href="https://forum.gta.world/en/profile/1817-welsh/" target="_blank" rel="noopener noreferrer">Contact Welsh on the GTA World Forums.</a></div>
 <main class="composer-layout">
 <aside>
 <section><h2>1 · Background</h2>
-<label class="upload">Upload GTA screenshot<input id="image" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<div class="image-loader"><label class="upload">Choose GTA screenshot<input id="image" type="file" accept="image/png,image/jpeg,image/webp"></label><span id="selectedfile" class="muted small">No screenshot selected</span><button id="loadimage" type="button" disabled>Load Screenshot</button></div>
 <div class="row"><button id="removebg">Remove image</button></div>
 </section>
 <section><h2>2 · Chat Segments</h2>
