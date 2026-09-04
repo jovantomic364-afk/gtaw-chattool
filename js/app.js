@@ -47,7 +47,9 @@ function clearFormatterOnly(){
  $('#people').innerHTML='<span class="muted">No characters detected.</span>';$('#messages').innerHTML='';$('#rptypes').innerHTML='';
  $('#preview').innerHTML='';$('#stats').textContent='';$('#detected').textContent='Waiting for a chatlog.'
 }
-$('#composer').onclick=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value,add:true}));location.href='composer.html'};
+const sendFilteredToComposer=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value,add:true}));location.href='composer.html'};
+$('#composer').onclick=sendFilteredToComposer;
+$('#composerfiltered').onclick=sendFilteredToComposer;
 $('#newproject').onclick=()=>{if(confirm('Start a new project? This clears saved Formatter and Screenshot Composer progress.')){localStorage.removeItem(FORMATTER_KEY);localStorage.removeItem('gtawComposerStateV1');localStorage.removeItem('gtawComposerIncoming');indexedDB.deleteDatabase('gtawChatToolDB');clearFormatterOnly()}};
 document.addEventListener('input',e=>{if(e.target.closest('main'))saveFormatter()});
 document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(saveFormatter,0)});

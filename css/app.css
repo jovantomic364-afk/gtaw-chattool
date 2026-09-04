@@ -12,3 +12,12 @@ header nav{display:flex;gap:6px;margin-left:auto;margin-right:18px}header nav a{
 .person-row .chip,.message-person-row .chip{flex:1}
 .only-person{padding:3px 7px;font-size:10px;white-space:nowrap}
 .filter-hidden{display:none!important}
+
+.wip-banner{margin:0;padding:9px 14px;background:#332b12;border-bottom:1px solid #725d1c;color:#eadca7;font-size:12px;line-height:1.45}
+.wip-banner strong{color:#ffd86a}
+.wip-banner a{color:#ffe39a;text-decoration:underline;font-weight:700}
+#people,#messages{max-height:285px;overflow-y:auto;overflow-x:hidden;padding-right:5px;align-content:start}
+#people::-webkit-scrollbar,#messages::-webkit-scrollbar{width:8px}
+#people::-webkit-scrollbar-thumb,#messages::-webkit-scrollbar-thumb{background:#3a434d;border-radius:6px}
+.filtered-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:8px}
+.filtered-actions .primary{white-space:nowrap}

@@ -12,3 +12,6 @@
 .segment-item.active{border-color:#8c98a5;background:#242b33}
 .segment-item .seg-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .segment-item .seg-meta{font-size:10px;color:#8e98a3}
+
+.wip-banner{margin:0;padding:9px 14px;background:#332b12;border-bottom:1px solid #725d1c;color:#eadca7;font-size:12px;line-height:1.45}
+.wip-banner strong{color:#ffd86a}.wip-banner a{color:#ffe39a;text-decoration:underline;font-weight:700}
