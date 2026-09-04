@@ -10,4 +10,46 @@ function regenerate(){let lines=state.lines.filter(allowed);generated=lines.map(
 function preview(){let raw=$('#filtered').value,lines=raw.replace(/\r/g,'').split('\n').filter(x=>x.trim()).map(x=>parseEditedLine(x,state.mode,$('#self').value.trim())),p=$('#preview');p.innerHTML='';p.style.maxWidth=$('#width').value+'px';p.style.padding=$('#chatbg').checked?'8px':'0';p.style.background=$('#chatbg').checked?'rgba(0,0,0,.45)':'transparent';lines.forEach(l=>{let d=document.createElement('div');d.className='chat';d.style.fontSize=$('#font').value+'px';if($('#timestamps').checked&&l.ts){let s=document.createElement('span');s.className='ts';s.textContent=`[${l.ts}] `;d.appendChild(s)}renderLine(l,state.mode,$('#self').value.trim()).forEach(g=>{let s=document.createElement('span');s.style.color=g.color;s.textContent=g.text;d.appendChild(s)});p.appendChild(d)});$('#stats').textContent=`${lines.length} lines`;$('#editstatus').textContent=raw===generated?'':'Edited'}
 function exportLines(){return $('#filtered').value.replace(/\r/g,'').split('\n').filter(x=>x.trim()).map(x=>{let l=parseEditedLine(x,state.mode,$('#self').value.trim());return{...l,selected:true,visible:true,edited:l.body,original:l.body}})}
 $('#build').onclick=build;['ooc','system','from','to'].forEach(id=>$('#'+id).onchange=regenerate);$('#filtered').oninput=preview;['font','width','timestamps','chatbg'].forEach(id=>$('#'+id).oninput=()=>{$('#fontv').textContent=$('#font').value;preview()});$('#copy').onclick=async()=>navigator.clipboard.writeText($('#filtered').value);$('#resetedit').onclick=()=>{$('#filtered').value=generated;preview()};$('#png').onclick=()=>png(exportLines(),{font:$('#font').value,width:$('#width').value,timestamps:$('#timestamps').checked,bg:$('#chatbg').checked},l=>renderLine(l,state.mode,$('#self').value.trim()));$('#clear').onclick=()=>{$('#source').value='';$('#filtered').value='';state={mode:'assistant',lines:[]};generated='';$('#people').innerHTML='<span class="muted">No characters detected.</span>';$('#messages').innerHTML='';$('#rptypes').innerHTML='';$('#preview').innerHTML='';$('#stats').textContent='';$('#detected').textContent='Waiting for a chatlog.'};$('#sample').onclick=()=>{$('#source').value=`[20:55:03] ~y~Marisol Lopez says (phone): Zohan?\n[20:55:59] (Phone) * Marisol Lopez has a broken tone of voice.\n[20:57:02] !{#C2A2DA}* Marisol Lopez pinches Jovan’s side.\n[20:57:09] !{#5F5F5F}Marisol Lopez says [low]: Or what?\n[20:57:20] !{#F0F0F0}Jovan Tomic says [low]: I didn't mean that, baby girl, princess.`;$('#mode').value='auto';$('#self').value='Jovan Tomic';build()};
-$('#composer').onclick=()=>{sessionStorage.setItem('gtawComposerChat',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value}));location.href='composer.html'};
+
+
+const FORMATTER_KEY='gtawChatToolFormatterV1';
+let restoring=false;
+function formatterSnapshot(){
+ return{
+  source:$('#source').value,mode:$('#mode').value,self:$('#self').value,
+  ooc:$('#ooc').checked,system:$('#system').checked,from:$('#from').value,to:$('#to').value,
+  filtered:$('#filtered').value,width:$('#width').value,font:$('#font').value,
+  timestamps:$('#timestamps').checked,chatbg:$('#chatbg').checked,
+  characters:[...document.querySelectorAll('[data-person]:checked')].map(x=>x.dataset.person),
+  messages:[...document.querySelectorAll('[data-message-person]:checked')].map(x=>x.dataset.messagePerson),
+  inperson:$('#inperson')?.checked??true,phonecalls:$('#phonecalls')?.checked??true
+ }}
+function saveFormatter(){if(restoring)return;try{localStorage.setItem(FORMATTER_KEY,JSON.stringify(formatterSnapshot()))}catch(e){console.warn('Could not save formatter workspace',e)}}
+function restoreChecks(d){
+ document.querySelectorAll('[data-person]').forEach(x=>x.checked=(d.characters||[]).includes(x.dataset.person));
+ document.querySelectorAll('[data-message-person]').forEach(x=>x.checked=(d.messages||[]).includes(x.dataset.messagePerson));
+ if($('#allmessages'))$('#allmessages').checked=[...document.querySelectorAll('[data-message-person]')].every(x=>x.checked)&&document.querySelectorAll('[data-message-person]').length>0;
+ if($('#inperson'))$('#inperson').checked=d.inperson!==false;
+ if($('#phonecalls'))$('#phonecalls').checked=d.phonecalls!==false;
+}
+function restoreFormatter(){
+ let d;try{d=JSON.parse(localStorage.getItem(FORMATTER_KEY)||'null')}catch{}if(!d)return;
+ restoring=true;
+ $('#source').value=d.source||'';$('#mode').value=d.mode||'auto';$('#self').value=d.self||'';
+ $('#ooc').checked=!!d.ooc;$('#system').checked=!!d.system;$('#from').value=d.from||'';$('#to').value=d.to||'';
+ $('#width').value=d.width||'900';$('#font').value=d.font||'16';$('#fontv').textContent=$('#font').value;
+ $('#timestamps').checked=!!d.timestamps;$('#chatbg').checked=!!d.chatbg;
+ if(d.source){state=parse(d.source,$('#mode').value,$('#self').value.trim());$('#detected').textContent=`Detected: ${state.mode.toUpperCase()} · ${state.lines.length} lines`;people();messages();rpTypes();restoreChecks(d);let lines=state.lines.filter(allowed);generated=lines.map(l=>l.raw).join('\n');$('#filtered').value=d.filtered??generated;preview()}
+ restoring=false
+}
+function clearFormatterOnly(){
+ localStorage.removeItem(FORMATTER_KEY);$('#source').value='';$('#filtered').value='';state={mode:'assistant',lines:[]};generated='';
+ $('#people').innerHTML='<span class="muted">No characters detected.</span>';$('#messages').innerHTML='';$('#rptypes').innerHTML='';
+ $('#preview').innerHTML='';$('#stats').textContent='';$('#detected').textContent='Waiting for a chatlog.'
+}
+$('#composer').onclick=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value}));location.href='composer.html'};
+$('#newproject').onclick=()=>{if(confirm('Start a new project? This clears saved Formatter and Screenshot Composer progress.')){localStorage.removeItem(FORMATTER_KEY);localStorage.removeItem('gtawComposerStateV1');localStorage.removeItem('gtawComposerIncoming');indexedDB.deleteDatabase('gtawChatToolDB');clearFormatterOnly()}};
+document.addEventListener('input',e=>{if(e.target.closest('main'))saveFormatter()});
+document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(saveFormatter,0)});
+addEventListener('beforeunload',saveFormatter);
+restoreFormatter();

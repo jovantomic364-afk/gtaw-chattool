@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screenshot Composer · GTAW ChatTool</title><link rel="stylesheet" href="css/app.css"><link rel="stylesheet" href="css/composer.css"></head>
 <body>
-<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a></nav><b>v1.5</b></header>
+<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.6</b></header>
 <main class="composer-layout">
 <aside>
 <section><h2>1 · Background</h2>
@@ -21,7 +21,7 @@
 </section>
 <section><h2>3 · Output</h2>
 <label>Canvas size<select id="preset"><option value="1920x1080">1920 × 1080</option><option value="2560x1440">2560 × 1440</option><option value="3840x2160">3840 × 2160</option><option value="1080x1080">1080 × 1080</option><option value="1080x1350">1080 × 1350</option></select></label>
-<div class="row"><button id="fit">Fit image</button><button id="centerchat">Reset chat position</button></div>
+<div class="row"><label>Image mode<select id="imagemode"><option value="cover" selected>Fill / crop</option><option value="contain">Fit entire image</option></select></label><button id="centerchat">Reset chat position</button></div>
 <button class="primary wide" id="export">Export finished PNG</button>
 </section>
 </aside>
