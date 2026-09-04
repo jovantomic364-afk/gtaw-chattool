@@ -3,27 +3,31 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screenshot Composer · GTAW ChatTool</title><link rel="stylesheet" href="css/app.css"><link rel="stylesheet" href="css/composer.css"></head>
 <body>
-<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.6</b></header>
+<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.7.1</b></header>
 <main class="composer-layout">
 <aside>
 <section><h2>1 · Background</h2>
 <label class="upload">Upload GTA screenshot<input id="image" type="file" accept="image/png,image/jpeg,image/webp"></label>
 <div class="row"><button id="removebg">Remove image</button></div>
 </section>
-<section><h2>2 · Chat</h2>
-<textarea id="chattext" class="composertext" placeholder="Open a filtered scene from Chat Formatter, or paste chat here..."></textarea>
+<section><h2>2 · Chat Segments</h2>
+<div class="segment-toolbar"><button class="primary" id="addsegment" type="button">+ Add Segment</button><button id="duplicatesegment" type="button">Duplicate</button><button id="deletesegment" type="button">Delete</button></div>
+<div id="segmentlist" class="segment-list"></div>
+<label>Segment name<input id="segmentname" placeholder="Segment 1"></label>
+<textarea id="chattext" class="composertext" placeholder="Paste chat for the selected segment..."></textarea>
 <div class="row"><label>Format<select id="cmode"><option value="auto">Auto</option><option value="ucp">UCP</option><option value="assistant">Assistant</option></select></label><label>Your character<input id="cself" placeholder="Jovan Tomic"></label></div>
 <div class="row"><label>Font <input id="cfont" type="range" min="10" max="32" value="16"><span id="cfontv">16</span></label></div>
 <div class="row"><label>Chat width <input id="chatwidth" type="range" min="300" max="1200" value="700"><span id="chatwidthv">700</span></label></div>
-<div class="row"><label>Background <input id="opacity" type="range" min="0" max="80" value="0"><span id="opacityv">0%</span></label></div>
-<div class="row"><label><input type="checkbox" id="ctimestamps" checked> Timestamps</label></div>
-<p class="hint">Drag the chat block directly on the canvas.</p>
+<div class="row"><label>Background <input id="opacity" type="range" min="0" max="90" value="0"><span id="opacityv">0%</span></label></div>
+<label class="check"><input id="ctimestamps" type="checkbox" checked> Show timestamps</label>
+<label class="check"><input id="segmentvisible" type="checkbox" checked> Show selected segment</label>
+<p class="muted small">Each segment can be edited and positioned independently. Click a segment above to select it, then drag it on the screenshot.</p>
 </section>
 <section><h2>3 · Output</h2>
 <label>Canvas size<select id="preset"><option value="1920x1080">1920 × 1080</option><option value="2560x1440">2560 × 1440</option><option value="3840x2160">3840 × 2160</option><option value="1080x1080">1080 × 1080</option><option value="1080x1350">1080 × 1350</option></select></label>
-<div class="row"><label>Image mode<select id="imagemode"><option value="cover" selected>Fill / crop</option><option value="contain">Fit entire image</option></select></label><button id="centerchat">Reset chat position</button></div>
+<div class="row"><label>Image mode<select id="imagemode"><option value="cover" selected>Fill / crop</option><option value="contain">Fit entire image</option></select></label><button id="centerchat">Reset selected position</button></div>
 <button class="primary wide" id="export">Export finished PNG</button>
 </section>
 </aside>
-<div class="composer-workspace"><div class="canvas-shell"><div id="canvas"><img id="bg" alt=""><div id="chatOverlay"></div><div id="empty">Upload a GTA screenshot to begin</div></div></div><div id="canvasinfo" class="muted"></div></div>
+<div class="composer-workspace"><div class="canvas-shell"><div id="canvas"><img id="bg" alt=""><div id="chatLayers"></div><div id="empty">Upload a GTA screenshot to begin</div></div></div><div id="canvasinfo" class="muted"></div></div>
 </main><script type="module" src="js/composer.js"></script></body></html>

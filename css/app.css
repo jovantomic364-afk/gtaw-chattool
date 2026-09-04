@@ -3,3 +3,12 @@ header nav{display:flex;gap:6px;margin-left:auto;margin-right:18px}header nav a{
 
 .newproject{padding:6px 9px;font-size:11px;background:#161b21;border-color:#39424d;color:#cbd2da}
 .newproject:hover{background:#222932}
+
+.filter-tools{display:flex;flex-direction:column;gap:6px;margin:7px 0}
+.filter-tools input[type=search]{width:100%;box-sizing:border-box}
+.filter-actions{display:flex;gap:5px;flex-wrap:wrap}
+.filter-actions button{padding:5px 8px;font-size:11px}
+.person-row,.message-person-row{display:flex;align-items:center;gap:5px}
+.person-row .chip,.message-person-row .chip{flex:1}
+.only-person{padding:3px 7px;font-size:10px;white-space:nowrap}
+.filter-hidden{display:none!important}

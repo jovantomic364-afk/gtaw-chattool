@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-<header><div><h1>GTAW ChatTool</h1><span>Chatlog formatter</span></div><nav><a class="active" href="index.html">Chat Formatter</a><a href="composer.html">Screenshot Composer</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.6</b></header>
+<header><div><h1>GTAW ChatTool</h1><span>Chatlog formatter</span></div><nav><a class="active" href="index.html">Chat Formatter</a><a href="composer.html">Screenshot Composer</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.7.1</b></header>
 <main>
 <aside>
 <section>
@@ -29,7 +29,15 @@
 <label><input type="checkbox" id="system"> System</label>
 </div>
 <div class="row"><label>From<input id="from" type="time" step="1"></label><label>To<input id="to" type="time" step="1"></label></div>
-<div class="filtertitle">Characters</div><div id="people" class="chips"><span class="muted">No characters detected.</span></div>
+<div class="filtertitle">Characters</div><div class="filter-tools">
+<input id="charactersearch" type="search" placeholder="Search characters…" autocomplete="off">
+<div class="filter-actions"><button type="button" id="charall">All</button><button type="button" id="charnone">None</button><button type="button" id="charselectvisible">Select visible</button><button type="button" id="chardeselectvisible">Deselect visible</button></div>
+</div>
+<div id="people" class="chips"><span class="muted">No characters detected.</span></div>
+<div class="filter-tools">
+<input id="messagesearch" type="search" placeholder="Search message contacts…" autocomplete="off">
+<div class="filter-actions"><button type="button" id="msgall">All</button><button type="button" id="msgnone">None</button><button type="button" id="msgselectvisible">Select visible</button><button type="button" id="msgdeselectvisible">Deselect visible</button></div>
+</div>
 <div id="messages" class="filtergroup"></div>
 <div id="rptypes" class="filtergroup"></div>
 <p class="hint">Changing a filter rebuilds the filtered text from your original log.</p>

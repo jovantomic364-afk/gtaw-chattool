@@ -47,9 +47,63 @@ function clearFormatterOnly(){
  $('#people').innerHTML='<span class="muted">No characters detected.</span>';$('#messages').innerHTML='';$('#rptypes').innerHTML='';
  $('#preview').innerHTML='';$('#stats').textContent='';$('#detected').textContent='Waiting for a chatlog.'
 }
-$('#composer').onclick=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value}));location.href='composer.html'};
+$('#composer').onclick=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value,add:true}));location.href='composer.html'};
 $('#newproject').onclick=()=>{if(confirm('Start a new project? This clears saved Formatter and Screenshot Composer progress.')){localStorage.removeItem(FORMATTER_KEY);localStorage.removeItem('gtawComposerStateV1');localStorage.removeItem('gtawComposerIncoming');indexedDB.deleteDatabase('gtawChatToolDB');clearFormatterOnly()}};
 document.addEventListener('input',e=>{if(e.target.closest('main'))saveFormatter()});
 document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(saveFormatter,0)});
 addEventListener('beforeunload',saveFormatter);
 restoreFormatter();
+
+
+function filterRows(containerId,query){
+ const q=(query||'').trim().toLowerCase();
+ document.querySelectorAll(`#${containerId} [data-person],#${containerId} [data-message-person]`).forEach(input=>{
+   const row=input.closest('label')||input.parentElement;
+   if(row)row.classList.toggle('filter-hidden',q&&!((input.dataset.person||input.dataset.messagePerson||'').toLowerCase().includes(q)));
+ });
+}
+function enhanceCharacterRows(){
+ document.querySelectorAll('#people [data-person]').forEach(input=>{
+   let label=input.closest('label');if(!label||label.dataset.enhanced)return;label.dataset.enhanced='1';
+   label.classList.add('person-row');
+   let only=document.createElement('button');only.type='button';only.className='only-person';only.textContent='Only';
+   only.onclick=e=>{e.preventDefault();e.stopPropagation();document.querySelectorAll('#people [data-person]').forEach(x=>x.checked=x===input);regen();saveFormatter();};
+   label.appendChild(only);
+ });
+ filterRows('people',$('#charactersearch')?.value);
+}
+function enhanceMessageRows(){
+ document.querySelectorAll('#messages [data-message-person]').forEach(input=>{
+   let label=input.closest('label');if(!label||label.dataset.enhanced)return;label.dataset.enhanced='1';
+   label.classList.add('message-person-row');
+   let only=document.createElement('button');only.type='button';only.className='only-person';only.textContent='Only';
+   only.onclick=e=>{e.preventDefault();e.stopPropagation();document.querySelectorAll('#messages [data-message-person]').forEach(x=>x.checked=x===input);if($('#allmessages'))$('#allmessages').checked=false;regen();saveFormatter();};
+   label.appendChild(only);
+ });
+ filterRows('messages',$('#messagesearch')?.value);
+}
+function setFilteredChecks(container,selector,value,visibleOnly=false){
+ document.querySelectorAll(`#${container} ${selector}`).forEach(input=>{
+   const row=input.closest('label')||input.parentElement;
+   if(!visibleOnly||!row?.classList.contains('filter-hidden'))input.checked=value;
+ });
+ if(container==='messages'&&$('#allmessages'))$('#allmessages').checked=[...document.querySelectorAll('#messages [data-message-person]')].every(x=>x.checked)&&document.querySelectorAll('#messages [data-message-person]').length>0;
+ regen();saveFormatter();
+}
+function installFilterTools(){
+ $('#charactersearch')?.addEventListener('input',e=>filterRows('people',e.target.value));
+ $('#messagesearch')?.addEventListener('input',e=>filterRows('messages',e.target.value));
+ $('#charall')?.addEventListener('click',()=>setFilteredChecks('people','[data-person]',true));
+ $('#charnone')?.addEventListener('click',()=>setFilteredChecks('people','[data-person]',false));
+ $('#charselectvisible')?.addEventListener('click',()=>setFilteredChecks('people','[data-person]',true,true));
+ $('#chardeselectvisible')?.addEventListener('click',()=>setFilteredChecks('people','[data-person]',false,true));
+ $('#msgall')?.addEventListener('click',()=>setFilteredChecks('messages','[data-message-person]',true));
+ $('#msgnone')?.addEventListener('click',()=>setFilteredChecks('messages','[data-message-person]',false));
+ $('#msgselectvisible')?.addEventListener('click',()=>setFilteredChecks('messages','[data-message-person]',true,true));
+ $('#msgdeselectvisible')?.addEventListener('click',()=>setFilteredChecks('messages','[data-message-person]',false,true));
+ const obs=new MutationObserver(()=>{enhanceCharacterRows();enhanceMessageRows()});
+ if($('#people'))obs.observe($('#people'),{childList:true,subtree:true});
+ if($('#messages'))obs.observe($('#messages'),{childList:true,subtree:true});
+ enhanceCharacterRows();enhanceMessageRows();
+}
+installFilterTools();
