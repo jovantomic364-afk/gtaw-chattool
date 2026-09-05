@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js?v=1.9.3';import{newProject}from'./projects.js?v=1.9.5';import{appendRedacted,redactSegments}from'./redaction.js?v=1.9.3';
+import{parse,parseEditedLine,renderLine}from'./parser.js?v=2.0';import{newProject}from'./projects.js?v=2.0';import{appendRedacted,redactSegments}from'./redaction.js?v=2.0';
 const $=s=>document.querySelector(s),canvas=$('#canvas'),layers=$('#chatLayers'),bg=$('#bg');
 const COMPOSER_KEY='gtawComposerStateV2';
 let imgURL='',segments=[],selectedId=null,drag=null;
@@ -93,9 +93,9 @@ $('#export').onclick=async()=>{
   let rawLines=s.text.replace(/\r/g,'').split('\n').filter(x=>x.trim());
   let prepared=[];
   for(let raw of rawLines){let l=parseEditedLine(raw,m,self),segs=[];if(s.timestamps&&l.ts)segs.push({text:`[${l.ts}] `,color:'#aaa'});segs.push(...redactSegments(renderLine(l,m,self)));let rows=[[]],rw=0;
-   for(let sg of segs)for(let part of sg.text.split(/(\s+)/)){if(!part)continue;let pw=ctx.measureText(part).width;if(rw+pw>maxw&&rows.at(-1).length&&!/^\s+$/.test(part)){rows.push([]);rw=0}rows.at(-1).push({text:part,color:sg.color,redacted:sg.redacted});rw+=pw}prepared.push(...rows)}
+   for(let sg of segs)for(let part of sg.text.split(/(\s+)/)){if(!part)continue;let pw=ctx.measureText(part).width;if(rw+pw>maxw&&rows.at(-1).length&&!/^\s+$/.test(part)){rows.push([]);rw=0}rows.at(-1).push({text:part,color:sg.color,redacted:sg.redacted,blurred:sg.blurred});rw+=pw}prepared.push(...rows)}
   if(s.opacity){ctx.fillStyle=`rgba(0,0,0,${s.opacity/100})`;ctx.fillRect(s.left,s.top,s.width,prepared.length*lh+pad*2)}
-  for(let row of prepared){let x=x0;for(let sg of row){let sw=ctx.measureText(sg.text).width;if(sg.redacted){ctx.fillStyle='#050505';ctx.fillRect(x,y+1,sw,lh-3)}else{if(outline){ctx.lineWidth=outline===1?2:4;ctx.strokeStyle='#000';ctx.strokeText(sg.text,x,y)}ctx.fillStyle=sg.color;ctx.fillText(sg.text,x,y)}x+=sw}y+=lh}
+  for(let row of prepared){let x=x0;for(let sg of row){let sw=ctx.measureText(sg.text).width;if(sg.redacted){ctx.fillStyle='#050505';ctx.fillRect(x,y+1,sw,lh-3)}else{ctx.save();if(sg.blurred)ctx.filter='blur(4px)';if(outline){ctx.lineWidth=outline===1?2:4;ctx.strokeStyle='#000';ctx.strokeText(sg.text,x,y)}ctx.fillStyle=sg.color;ctx.fillText(sg.text,x,y);ctx.restore()}x+=sw}y+=lh}
  }
  let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gtaw-chat'.replace(/[^a-z0-9-_]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 };
