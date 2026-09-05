@@ -21,8 +21,9 @@ export function saveCurrentProject(name=null,formatterData=null,composerData=nul
  let existing=i>=0?ps[i]:null;
  let formatter=formatterData??readJson(FORMATTER_KEY);
  let composer=composerData??readJson(COMPOSER_KEY);
- let hasFormatter=!!(formatter&&(String(formatter.source||'').trim()||String(formatter.filtered||'').trim()));
- let hasComposer=!!(composer&&Array.isArray(composer.segments)&&composer.segments.some(x=>String(x?.text||'').trim()));
+ const hasText=v=>typeof v==='string'&&v.trim().length>0;
+ let hasFormatter=!!(formatter&&(hasText(formatter.source)||hasText(formatter.filtered)||hasText(formatter.filteredText)||hasText(formatter.edited)||hasText(formatter.raw)||(Array.isArray(formatter.lines)&&formatter.lines.length>0)));
+ let hasComposer=!!(composer&&((Array.isArray(composer.segments)&&composer.segments.some(x=>hasText(x?.text)))||hasText(composer.text)));
  if(!hasFormatter&&!hasComposer)return {ok:false,reason:'empty'};
  let finalName=(name??existing?.name??suggestedName(formatter)).trim()||'Untitled chat log';
  let item={id,name:finalName,created:existing?.created||now,modified:now,formatter:formatter||null,composer:composer||null};
