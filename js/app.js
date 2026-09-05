@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js';import{png}from'./exporter.js';import{appendRedacted}from'./redaction.js';import{updateProject,newProject,autoNameFromFormatter,archiveCurrentProject}from'./projects.js';
+import{parse,parseEditedLine,renderLine}from'./parser.js';import{png}from'./exporter.js';import{appendRedacted}from'./redaction.js';import{updateProject,newProject,autoNameFromFormatter,saveCurrentProject,isCurrentSaved,hasUnsavedChanges,suggestedName}from'./projects.js';
 const $=s=>document.querySelector(s);let state={mode:'assistant',lines:[]};let generated='';
 function build(){state=parse($('#source').value,$('#mode').value,$('#self').value.trim());$('#detected').textContent=state.lines.length?`Detected: ${state.mode.toUpperCase()} · ${state.lines.length} lines`:'No chat lines detected.';document.body.classList.toggle('has-log',state.lines.length>0);people();messages();rpTypes();regenerate()}
 function people(){let ps=[...new Set(state.lines.flatMap(x=>x.people||[]).filter(Boolean))].sort();$('#people').innerHTML=ps.length?ps.map(p=>`<label class="chip"><input type="checkbox" data-person="${esc(p)}" checked> ${p}</label>`).join('\n'):'<span class="muted">No characters detected.</span>';$('#people').querySelectorAll('input').forEach(x=>x.onchange=regenerate)}
@@ -50,11 +50,13 @@ function clearFormatterOnly(){
 const sendFilteredToComposer=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value,fontfamily:$('#fontfamily').value,fontweight:$('#fontweight').value,outline:$('#outline').value,add:true}));location.href='composer.html'};
 $('#composer').onclick=sendFilteredToComposer;
 if($('#composerfiltered'))$('#composerfiltered').onclick=sendFilteredToComposer;
-$('#newproject').onclick=()=>{if(confirm('Start a new project? Your current work stays in History.')){let snap=formatterSnapshot();saveFormatter();if(!archiveCurrentProject(snap)){alert('This project could not be saved to History. Your workspace has not been cleared.');return}restoring=true;newProject();clearFormatterOnly();location.reload()}};
-document.addEventListener('input',e=>{if(e.target.closest('main'))saveFormatter()});
-document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(saveFormatter,0)});
+function refreshSaveButton(){let b=$('#saveproject');if(!b)return;b.textContent=isCurrentSaved()?'Save Changes':'Save Project';b.classList.toggle('has-unsaved',hasUnsavedChanges())}
+$('#saveproject').onclick=()=>{saveFormatter();let name=null;if(!isCurrentSaved()){name=prompt('Name this project:',suggestedName(formatterSnapshot()));if(name===null)return}let r=saveCurrentProject(name,formatterSnapshot());if(!r.ok){alert(r.reason==='empty'?'There is nothing to save yet.':'This project could not be saved to History.');return}refreshSaveButton();$('#editstatus').textContent='Saved to History'};
+$('#newproject').onclick=()=>{saveFormatter();if(hasUnsavedChanges()&&!confirm('This project has unsaved changes. Start a new project and discard them?'))return;restoring=true;newProject();clearFormatterOnly();location.reload()};
+document.addEventListener('input',e=>{if(e.target.closest('main')){saveFormatter();refreshSaveButton()}});
+document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(()=>{saveFormatter();refreshSaveButton()},0)});
 addEventListener('beforeunload',saveFormatter);
-restoreFormatter();
+restoreFormatter();refreshSaveButton();
 
 
 function filterRows(containerId,query){

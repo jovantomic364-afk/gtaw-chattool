@@ -56,3 +56,4 @@ body:not(.has-log) .previewbox #stage{min-height:150px}
 
 /* v1.9 UX input sizing */
 .field-stack{grid-template-columns:145px 175px;justify-content:start;align-items:end}.field-stack select,.field-stack input{width:100%;box-sizing:border-box}@media(max-width:850px){.field-stack{grid-template-columns:145px 175px}}@media(max-width:430px){.field-stack{grid-template-columns:1fr}}
+.saveproject{padding:6px 10px;font-size:11px;background:#2b6f45;border-color:#438b5e;color:#fff;margin-left:6px}.saveproject:hover{background:#358455}.saveproject.has-unsaved{box-shadow:0 0 0 1px #e0ad55 inset}

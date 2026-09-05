@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Screenshot Composer · GTAW ChatTool</title><link rel="stylesheet" href="css/app.css"><link rel="stylesheet" href="css/composer.css"></head>
 <body>
-<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a><a href="history.html">History</a><a href="howto.html">How to Use</a></nav><button class="newproject" id="newproject" type="button">New Project</button><b>v1.9.0</b></header>
+<header><div><h1>GTAW ChatTool</h1><span>Screenshot Composer</span></div><nav><a href="index.html">Chat Formatter</a><a class="active" href="composer.html">Screenshot Composer</a><a href="history.html">History</a><a href="howto.html">How to Use</a></nav><button class="saveproject" id="saveproject" type="button">Save Project</button><button class="newproject" id="newproject" type="button">New Project</button><b>v1.9.1</b></header>
 <div class="wip-banner"><strong>WORK IN PROGRESS</strong> — GTAW ChatTool is currently in active development. Found a bug or have feedback? <a href="https://forum.gta.world/en/profile/1817-welsh/" target="_blank" rel="noopener noreferrer">Contact Welsh on the GTA World Forums.</a></div>
 <main class="composer-layout">
 <aside>
@@ -16,7 +16,7 @@
 <div id="segmentlist" class="segment-list"></div>
 <label>Segment name<input id="segmentname" placeholder="Segment 1"></label>
 <textarea id="chattext" class="composertext" placeholder="Paste chat for the selected segment..."></textarea>
-<div class="row"><label>Format<select id="cmode"><option value="auto">Auto</option><option value="ucp">UCP</option><option value="assistant">Assistant</option></select></label><label>Your character<input id="cself" placeholder="Jovan Tomic"></label></div>
+<div class="row"><label>Format<select id="cmode"><option value="auto">Auto</option><option value="ucp">UCP</option><option value="assistant">Assistant</option></select></label><label>Your character<input id="cself" placeholder="Character name"></label></div>
 <div class="row"><label>Size <input id="cfont" type="range" min="10" max="32" value="16"><span id="cfontv">16</span></label></div>
 <div class="row"><label>Font<select id="cfontfamily"><option value="Arial" selected>Arial</option><option value="Segoe UI">Segoe UI</option><option value="Tahoma">Tahoma</option></select></label><label>Weight<select id="cfontweight"><option value="400">Normal</option><option value="700" selected>Bold</option></select></label><label>Outline<select id="coutline"><option value="0">None</option><option value="1" selected>Thin</option><option value="2">Thick</option></select></label></div>
 <div class="row"><label>Chat width <input id="chatwidth" type="range" min="300" max="1200" value="700"><span id="chatwidthv">700</span></label></div>
