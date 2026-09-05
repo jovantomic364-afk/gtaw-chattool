@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js?v=1.9.3';import{png}from'./exporter.js?v=1.9.3';import{appendRedacted}from'./redaction.js?v=1.9.3';import{updateProject,newProject,autoNameFromFormatter,saveCurrentProject,isCurrentSaved,hasUnsavedChanges,suggestedName,listProjects}from'./projects.js?v=1.9.4';
+import{parse,parseEditedLine,renderLine}from'./parser.js?v=1.9.3';import{png}from'./exporter.js?v=1.9.3';import{appendRedacted}from'./redaction.js?v=1.9.3';import{newProject}from'./projects.js?v=1.9.5';
 const $=s=>document.querySelector(s);let state={mode:'assistant',lines:[]};let generated='';
 function build(){state=parse($('#source').value,$('#mode').value,$('#self').value.trim());$('#detected').textContent=state.lines.length?`Detected: ${state.mode.toUpperCase()} · ${state.lines.length} lines`:'No chat lines detected.';document.body.classList.toggle('has-log',state.lines.length>0);people();messages();rpTypes();regenerate()}
 function people(){let ps=[...new Set(state.lines.flatMap(x=>x.people||[]).filter(Boolean))].sort();$('#people').innerHTML=ps.length?ps.map(p=>`<label class="chip"><input type="checkbox" data-person="${esc(p)}" checked> ${p}</label>`).join('\n'):'<span class="muted">No characters detected.</span>';$('#people').querySelectorAll('input').forEach(x=>x.onchange=regenerate)}
@@ -24,7 +24,7 @@ function formatterSnapshot(){
   messages:[...document.querySelectorAll('[data-message-person]:checked')].map(x=>x.dataset.messagePerson),
   inperson:$('#inperson')?.checked??true,phonecalls:$('#phonecalls')?.checked??true
  }}
-function saveFormatter(){if(restoring)return;try{let snap=formatterSnapshot();localStorage.setItem(FORMATTER_KEY,JSON.stringify(snap));updateProject('formatter',snap);autoNameFromFormatter(snap)}catch(e){console.warn('Could not save formatter workspace',e)}}
+function saveFormatter(){if(restoring)return;try{let snap=formatterSnapshot();localStorage.setItem(FORMATTER_KEY,JSON.stringify(snap))}catch(e){console.warn('Could not save formatter workspace',e)}}
 function restoreChecks(d){
  document.querySelectorAll('[data-person]').forEach(x=>x.checked=(d.characters||[]).includes(x.dataset.person));
  document.querySelectorAll('[data-message-person]').forEach(x=>x.checked=(d.messages||[]).includes(x.dataset.messagePerson));
@@ -50,13 +50,11 @@ function clearFormatterOnly(){
 const sendFilteredToComposer=()=>{saveFormatter();localStorage.setItem('gtawComposerIncoming',JSON.stringify({text:$('#filtered').value,mode:state.mode,self:$('#self').value.trim(),timestamps:$('#timestamps').checked,font:+$('#font').value,fontfamily:$('#fontfamily').value,fontweight:$('#fontweight').value,outline:$('#outline').value,add:true}));location.href='composer.html'};
 $('#composer').onclick=sendFilteredToComposer;
 if($('#composerfiltered'))$('#composerfiltered').onclick=sendFilteredToComposer;
-function refreshSaveButton(){let b=$('#saveproject');if(!b)return;b.textContent=isCurrentSaved()?'Save Changes':'Save Project';b.classList.toggle('has-unsaved',hasUnsavedChanges())}
-$('#saveproject').onclick=()=>{const snap=formatterSnapshot();try{localStorage.setItem(FORMATTER_KEY,JSON.stringify(snap))}catch(e){console.warn('Could not save formatter workspace',e)}let name=null;if(!isCurrentSaved()){name=prompt('Name this project:',suggestedName(snap));if(name===null)return}let r=saveCurrentProject(name,snap);if(!r.ok){console.warn('Save Project failed',r,{sourceLength:(snap.source||'').length,filteredLength:(snap.filtered||'').length,parsedLines:state.lines.length});alert(r.reason==='empty'?'There is nothing to save yet. Load or edit a chatlog first.':'This project could not be saved to History.');return}refreshSaveButton();$('#editstatus').textContent=`Saved to History · ${r.count} project${r.count===1?'':'s'}`};
-$('#newproject').onclick=()=>{saveFormatter();if(hasUnsavedChanges()&&!confirm('This project has unsaved changes. Start a new project and discard them?'))return;restoring=true;newProject();clearFormatterOnly();location.reload()};
-document.addEventListener('input',e=>{if(e.target.closest('main')){saveFormatter();refreshSaveButton()}});
-document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(()=>{saveFormatter();refreshSaveButton()},0)});
+$('#newproject').onclick=()=>{if(($('#source').value.trim()||$('#filtered').value.trim())&&!confirm('Start a new project? Your current workspace will be cleared.'))return;restoring=true;newProject();clearFormatterOnly();location.reload()};
+document.addEventListener('input',e=>{if(e.target.closest('main')){saveFormatter()}});
+document.addEventListener('change',e=>{if(e.target.closest('main'))setTimeout(()=>{saveFormatter()},0)});
 addEventListener('beforeunload',saveFormatter);
-restoreFormatter();refreshSaveButton();
+restoreFormatter();
 
 
 function filterRows(containerId,query){

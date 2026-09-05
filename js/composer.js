@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js?v=1.9.3';import{updateProject,newProject,currentId,projectName,saveCurrentProject,isCurrentSaved,hasUnsavedChanges,suggestedName}from'./projects.js?v=1.9.4';import{appendRedacted,redactSegments}from'./redaction.js?v=1.9.3';
+import{parse,parseEditedLine,renderLine}from'./parser.js?v=1.9.3';import{newProject}from'./projects.js?v=1.9.5';import{appendRedacted,redactSegments}from'./redaction.js?v=1.9.3';
 const $=s=>document.querySelector(s),canvas=$('#canvas'),layers=$('#chatLayers'),bg=$('#bg');
 const COMPOSER_KEY='gtawComposerStateV2';
 let imgURL='',segments=[],selectedId=null,drag=null;
@@ -58,7 +58,7 @@ async function loadImage(){try{let db=await openDB(),tx=db.transaction('files','
 
 function snapshot(){return{segments,selectedId,preset:$('#preset').value,imagemode:$('#imagemode').value}}
 let startingNewProject=false;
-function saveComposer(){if(startingNewProject)return;try{let snap=snapshot();localStorage.setItem(COMPOSER_KEY,JSON.stringify(snap));updateProject('composer',snap);setTimeout(refreshSaveButton,0)}catch(e){console.warn(e)}}
+function saveComposer(){if(startingNewProject)return;try{let snap=snapshot();localStorage.setItem(COMPOSER_KEY,JSON.stringify(snap))}catch(e){console.warn(e)}}
 function migrateV1(){
  let d;try{d=JSON.parse(localStorage.getItem('gtawComposerStateV1')||'null')}catch{}if(!d)return false;
  segments=[defaults(d.text||'',{name:'Segment 1',mode:d.mode||'auto',self:d.self||'',font:+d.font||16,fontfamily:d.fontfamily||'Arial',fontweight:d.fontweight||'700',outline:d.outline??'1',width:+d.chatwidth||700,opacity:+d.opacity||0,timestamps:d.timestamps!==false,left:parseFloat(d.left)||35,top:parseFloat(d.top)||35})];selectedId=segments[0].id;$('#preset').value=d.preset||'1920x1080';$('#imagemode').value=d.imagemode||'cover';return true
@@ -97,9 +97,7 @@ $('#export').onclick=async()=>{
   if(s.opacity){ctx.fillStyle=`rgba(0,0,0,${s.opacity/100})`;ctx.fillRect(s.left,s.top,s.width,prepared.length*lh+pad*2)}
   for(let row of prepared){let x=x0;for(let sg of row){let sw=ctx.measureText(sg.text).width;if(sg.redacted){ctx.fillStyle='#050505';ctx.fillRect(x,y+1,sw,lh-3)}else{if(outline){ctx.lineWidth=outline===1?2:4;ctx.strokeStyle='#000';ctx.strokeText(sg.text,x,y)}ctx.fillStyle=sg.color;ctx.fillText(sg.text,x,y)}x+=sw}y+=lh}
  }
- let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projectName()||'gtaw-chat').replace(/[^a-z0-9-_]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
+ let blob=await new Promise(r=>c.toBlob(r,'image/png')),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='gtaw-chat'.replace(/[^a-z0-9-_]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)
 };
-function refreshSaveButton(){let b=$('#saveproject');if(!b)return;b.textContent=isCurrentSaved()?'Save Changes':'Save Project';b.classList.toggle('has-unsaved',hasUnsavedChanges())}
-$('#saveproject').onclick=()=>{saveComposer();let name=null;if(!isCurrentSaved()){name=prompt('Name this project:',suggestedName());if(name===null)return}let r=saveCurrentProject(name);if(!r.ok){alert(r.reason==='empty'?'There is nothing to save yet.':'This project could not be saved to History.');return}refreshSaveButton();alert('Project saved to History.')} ;
-$('#newproject').onclick=()=>{saveComposer();if(hasUnsavedChanges()&&!confirm('This project has unsaved changes. Start a new project and discard them?'))return;startingNewProject=true;newProject();location.href='index.html'};
-addEventListener('beforeunload',saveComposer);addEventListener('resize',scale);restore();refreshSaveButton();
+$('#newproject').onclick=()=>{if(segments.some(s=>String(s.text||'').trim())&&!confirm('Start a new project? Your current workspace will be cleared.'))return;startingNewProject=true;newProject();location.href='index.html'};
+addEventListener('beforeunload',saveComposer);addEventListener('resize',scale);restore();
