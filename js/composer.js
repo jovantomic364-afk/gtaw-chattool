@@ -1,4 +1,4 @@
-import{parse,parseEditedLine,renderLine}from'./parser.js?v=2.0';import{newProject}from'./projects.js?v=2.0';import{appendRedacted,redactSegments}from'./redaction.js?v=2.0';
+import{parse,parseEditedLine,renderLine}from'./parser.js?v=2.0.1';import{newProject}from'./projects.js?v=2.0.1';import{appendRedacted,redactSegments}from'./redaction.js?v=2.0.1';
 const $=s=>document.querySelector(s),canvas=$('#canvas'),layers=$('#chatLayers'),bg=$('#bg');
 const COMPOSER_KEY='gtawComposerStateV2';
 let imgURL='',segments=[],selectedId=null,drag=null;
